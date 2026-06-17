@@ -3,35 +3,32 @@ on:
   workflow_dispatch:
     inputs:
       coordinator_url:
-        description: "Coordinator URL"
+        description: Coordinator URL
         required: true
-        default: "https://scrapower.talos-int.com"
+        default: https://scrapower.talos-int.com
       worker_id:
-        description: "Worker ID"
+        description: Worker ID
         required: false
-        default: "gh-actions"
+        default: gh-actions
 jobs:
   worker:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
       - uses: actions/setup-python@v5
-        with: {python-version: "3.12"}
+        with:
+          python-version: "3.12"
       - name: Install
         run: pip install aiohttp wasmtime
       - name: Run Worker
         env:
-          COORDINATOR_URL: ${{ inputs.coordinator_url }}
-          WORKER_ID: ${{ inputs.worker_id }}
+          C: https://scrapower.talos-int.com
+          W: gh-actions
         run: |
-          python -c "
-import asyncio, aiohttp, os, sys, uuid, hashlib
-C=os.environ['COORDINATOR_URL'].replace('https://','wss://').replace('http://','ws://')
-if not C.endswith('/worker/ws'):C=C.rstrip('/')+'/worker/ws'
-W=os.environ.get('WORKER_ID',f'gh-{uuid.uuid4().hex[:8]}')
-async def m():
+          python -c "import asyncio,aiohttp,os,uuid,hashlib;C=os.environ['C'].replace('https://','wss://');W=os.environ.get('W',f'gh-{uuid.uuid4().hex[:8]}');exec(open('/dev/stdin').read())" << 'PY'
+async def main():
     async with aiohttp.ClientSession() as s:
-        async with s.ws_connect(C) as ws:
+        async with s.ws_connect(C+'/worker/ws') as ws:
             await ws.send_json({'type':'hello','version':'2.1','mode':'persistent','worker_id':W,'auth':{'method':'none'}})
             msg=await ws.receive_json()
             if msg['type']!='session':return
@@ -48,21 +45,19 @@ async def m():
                 except Exception:break
                 mt=msg.get('type','')
                 if mt in('task_assign','keepalive'):
-                    if mt=='task_assign':
-                        await ws.send_json({'type':'task_accept','session_id':sid,'task_id':msg['task']['id'],'assignment_token':msg['task']['assignment_token']})
-                    H=C.replace('ws://','http://').replace('/worker/ws','')
+                    if mt=='task_assign':await ws.send_json({'type':'task_accept','session_id':sid,'task_id':msg['task']['id'],'assignment_token':msg['task']['assignment_token']})
+                    H=C.replace('wss://','https://')
                     try:
                         async with aiohttp.ClientSession() as s2:
-                            async with s2.get(f'{H}/blobs/{msg["task"]["payload"]["executable_hash"]}') as r:executable=await r.read()
-                            async with s2.get(f'{H}/blobs/{msg["task"]["payload"]["input_hash"]}') as r:inp=await r.read()
+                            async with s2.get(H+'/blobs/'+msg['task']['payload']['executable_hash']) as r:executable=await r.read()
+                            async with s2.get(H+'/blobs/'+msg['task']['payload']['input_hash']) as r:inp=await r.read()
                         try:
                             import wasmtime;m=wasmtime.Module(executable);inst=wasmtime.Instance(m,[]);mem=inst.exports['memory'];mem.write_bytes(0,inp);inst.exports['compute'](0,len(inp),1024,4096);out=bytes(mem.read_bytes(1024,4096))
                         except:out=inp[:100]
                         oh=hashlib.sha256(out).hexdigest()
-                        async with aiohttp.ClientSession() as s3:
-                            async with s3.put(f'{H}/blobs',data=out) as r:pass
-                        status,exit_code,stderr='success',0,''
-                    except Exception as e:oh,status,exit_code,stderr='','error',1,str(e)[:4096]
-                    await ws.send_json({'type':'task_result','session_id':sid,'task_id':msg['task']['id'],'assignment_token':msg['task'].get('assignment_token',''),'status':status,'result':{'output_hash':oh,'execution_metadata':{'duration_ms':0,'exit_code':exit_code,'stderr':stderr}},'verification_data':None})
-asyncio.run(m())
-"
+                        async with aiohttp.ClientSession() as s3:await s3.put(H+'/blobs',data=out)
+                        status,ec,se='success',0,''
+                    except Exception as e:oh,status,ec,se='','error',1,str(e)[:4096]
+                    await ws.send_json({'type':'task_result','session_id':sid,'task_id':msg['task']['id'],'assignment_token':msg['task'].get('assignment_token',''),'status':status,'result':{'output_hash':oh,'execution_metadata':{'duration_ms':0,'exit_code':ec,'stderr':se}},'verification_data':None})
+asyncio.run(main())
+PY
